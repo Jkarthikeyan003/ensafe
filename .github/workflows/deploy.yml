@@ -10,28 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Install dependencies
-        run: npm install
-
-      # ❌ REMOVE BUILD STEP (not needed)
-
       - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
+          host: 13.60.11.193
+          username: ec2-user   # ✅ IMPORTANT FIX
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/app
-
-            git pull origin main
-
+            cd /home/ec2-user/app || mkdir -p /home/ec2-user/app && cd /home/ec2-user/app
+            git pull origin main || git clone https://github.com/YOUR_USERNAME/ensafe.git .
             npm install
-
-            # Restart or start app
             pm2 restart express-app || pm2 start app.js --name express-app
-
             pm2 save
