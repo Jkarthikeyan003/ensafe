@@ -1,4 +1,4 @@
-name: Deploy NestJS to AWS
+name: Deploy Express App to AWS
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,8 +16,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build project
-        run: npm run build
+      # ❌ REMOVE BUILD STEP (not needed)
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -28,16 +27,11 @@ jobs:
           script: |
             cd /home/ubuntu/app
 
-            # Pull latest code
             git pull origin main
 
-            # Install dependencies
             npm install
 
-            # Build app
-            npm run build
-
-            # Restart app using PM2
-            pm2 restart nest-app || pm2 start dist/main.js --name nest-app
+            # Restart or start app
+            pm2 restart express-app || pm2 start app.js --name express-app
 
             pm2 save
