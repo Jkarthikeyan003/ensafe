@@ -1,21 +1,39 @@
-script: |
-  cd /home/ec2-user || exit
+name: Deploy Express App to AWS
 
-  # Clone repo if not exists
-  if [ ! -d "ensafe" ]; then
-    git clone https://github.com/Jkarthikeyan003/ensafe.git
-  fi
+on:
+  push:
+    branches:
+      - main
 
-  cd ensafe
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-  # Pull latest changes
-  git pull origin main
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: 13.60.11.193
+          username: ec2-user   # ✅ IMPORTANT FIX
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user || exit
 
-  # Install dependencies
-  npm install
+            # Clone repo if not exists
+            if [ ! -d "ensafe" ]; then
+              git clone https://github.com/Jkarthikeyan003/ensafe.git
+            fi
 
-  # Restart app properly
-  pm2 delete express-app || true
-  pm2 start app.js --name express-app
+            cd ensafe
 
-  pm2 save
+            # Pull latest changes
+            git pull origin main
+
+            # Install dependencies
+            npm install
+
+            # Restart app properly
+            pm2 delete express-app || true
+            pm2 start app.js --name express-app
+
+            pm2 save
