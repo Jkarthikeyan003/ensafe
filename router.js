@@ -1,7 +1,9 @@
 const express = require('express');
-const app = express();
+const router = express.Router();
 
+const userController = require('./controller/user.controller');
 
-app.route('/user', require('./controller/user.controller'));
+// mount controller
+router.use('/', userController);
 
-module.exports = app;
+module.exports = router;

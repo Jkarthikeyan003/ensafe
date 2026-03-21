@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const commonFunction = require('./commonFunction');
+require('dotenv').config();
 
 const globalRouter = require('./router');
 
@@ -9,7 +11,7 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.send('Hello World from Express!');
 });
-
+commonFunction.connectDB();
 // user routes
 app.use('/api/users', globalRouter);
 

@@ -1,30 +1,69 @@
-const md5 = require("md5");
+const bcrypt = require('bcrypt');
 const User = require("../model/user.model");
+const { generateToken } = require("../commonFunction");
+const md5 = require('md5');
 
-exports.signup = async (req) => {
+// ✅ SIGNUP
+const signup = async (req) => {
+  const { email, mobileNumber, password } = req.body;
 
-  const { firstName, lastName, email, mobileNumber, password } = req.body;
-
-  const existingUser = await User.findOne({ mobileNumber });
-
-  if (existingUser) {
-    throw new Error("User already exists with this mobile number");
-  }
-
-  const encryptedPassword = md5(password);
-
-  const user = new User({
-    firstName,
-    lastName,
-    email,
-    mobileNumber,
-    password: encryptedPassword
+  // Check existing user
+  const existingUser = await User.findOne({
+    $or: [{ email }, { mobileNumber }]
   });
 
-  const savedUser = await user.save();
+  if (existingUser) {
+    throw { status: 409, message: "User already exists with this email or mobile number" };
+  }
+
+
+  const user = await User.create({
+    ...req.body,
+    password: md5(password) // Hash password using MD5
+  });
+
+  return user;
+};
+
+
+// ✅ LOGIN
+const login = async (req) => {
+  const { email, mobileNumber, password } = req.body;
+
+  if (!email && !mobileNumber) {
+    throw { status: 400, message: "Email or mobile number is required" };
+  }
+
+  // Find user
+  const user = await User.findOne({
+    $or: [{ email }, { mobileNumber }]
+  });
+
+  if (!user) {
+    throw { status: 404, message: "User not found" };
+  }
+
+  // Compare password
+  const isMatch = md5(password) == user.password; // Compare hashed password
+
+  if (!isMatch) {
+    throw { status: 401, message: "Invalid credentials" };
+  }
+
+  // Generate JWT
+  const token = generateToken({
+    id: user._id,
+    email: user.email
+  });
 
   return {
-    message: "Signup successful",
-    user: savedUser
+    message: "Login successful",
+    token,
+    ...user.toJSON() // Return user data without password
   };
+};
+
+module.exports = {
+  signup,
+  login
 };
