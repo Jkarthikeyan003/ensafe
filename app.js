@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
 });
 commonFunction.connectDB();
 // user routes
-app.use('/api/users', globalRouter);
+app.use('/api', globalRouter);
 
 app.listen(process.env.SERVER_PORT, '0.0.0.0', () => {
   console.log(`Example app listening at http://localhost:${process.env.SERVER_PORT}`);
